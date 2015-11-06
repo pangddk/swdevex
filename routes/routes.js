@@ -1,7 +1,7 @@
 module.exports = function(app) {
 
     app.get('/', function(req, res) {
-        res.render('index', { title: '9ostrd' });
+        res.render('home');
     });
 
     // catch 404 and forward to error handler
