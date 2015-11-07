@@ -1,0 +1,34 @@
+extends layout/layout
+
+block content
+	div(class="row")
+		div(class "col-xs-12 col-md-12")
+			center
+				div(class="page-header")
+					h1 เพิ่ม/ลดจำนวนอุปกรณ์
+				br
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") รหัสอุปกรณ์
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid", placeholder="")
+				div(class="form-group")
+					label(for="inputitemname", class="col-sm-5 control-label") ชื่ออุปกรณ์
+					div(class="col-sm-3")
+						input(type="itemname", class="form-control", id="inputitemname" placeholder="")
+				div(class="form-group")
+					label(for="inputamount", class="col-sm-5 control-label") จำนวน
+					div(class="col-sm-3")
+						input(type="amount", class="form-control", id="inputamount", placeholder="")
+				div(class="form-group")
+					label(for="inputleast",class="col-sm-5 control-label") ขั้นต่ำ
+					div(class="col-sm-3")
+						input(type="least", class="form-control", id="inputleast", placeholder="")
+				div(class="form-group")
+					div(class="col-sm-offset-5 col-sm-10")
+						br
+						button(type="submit", class="btn btn-default") ยืนยัน
+						button(type="submit", class="btn btn-default") ยกเลิก
+						button(type="submit", class="btn btn-default") กลับสู่หน้าแรก

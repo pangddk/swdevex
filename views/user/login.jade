@@ -1,4 +1,4 @@
-extends layoutHome
+extends ../layout/layoutLogin
 
 block content
 	div(class="row")
@@ -14,15 +14,15 @@ block content
 			br
 	div(class="row")
 		div(class="col-xs-12 col-md-12")
-			form(class="form-horizontal")
+			form(class="form-horizontal", method="POST", action="/auth")
 				div(class="form-group")
 					label(for="inputusername",class="col-sm-5 control-label") Username
 					div(class="col-sm-3 ")
-						input(type="username",class="form-control",id="inputusername",  placeholder="PSU Passport")
+						input(type="username",class="form-control", name="username",id="inputusername",  placeholder="PSU Passport")
 				div(class="form-group")
 					label(for="inputpassword",class="col-sm-5 control-label") Password
 					div(class="col-sm-3")
-						input(type="password",class="form-control",id="inputpassword", placeholder="Password")
+						input(type="password",class="form-control",id="inputpassword", name="password", placeholder="Password")
 				div(class="form-group")
 					label(for="",class="col-sm-5 control-label")
 					div(class="col-sm-3")

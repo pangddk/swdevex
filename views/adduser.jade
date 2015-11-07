@@ -1,0 +1,44 @@
+extends layout/layout
+
+block content
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			center
+				div(class="page-header")
+					h1 เพิ่มสมาชิก
+					br
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") ชื่อผู้ใช้(user name)
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") รหัสผ่าน (password)
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") ชื่อ
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") สกุล
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") เบอ์โทรศัทพ์
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") รหัสบัตร(passcode)
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputitemid", class="col-sm-5 control-label") รหัส RFID
+					div(class="col-sm-3")
+						input(type="itemid", class="form-control", id="inputitemid" placeholder="")
+				div(class="form-group")
+					label(for="inputleast", class="col-sm-5 control-label")
+					div(class="col-sm-3")
+						button(type="submit", class="btn btn-default") เพิ่ม

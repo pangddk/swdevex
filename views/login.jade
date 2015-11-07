@@ -1,0 +1,29 @@
+extends layout/layoutHome
+
+block content
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			br
+			center
+				div(class="page-header")
+					h1 ระบบยืม-คืนอุปกรณ์ ภาควิชาวิศวกรรมคอมพิวเตอร์
+			br
+			h2
+				center User Login
+			br
+			br
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal")
+				div(class="form-group")
+					label(for="inputusername",class="col-sm-5 control-label") Username
+					div(class="col-sm-3 ")
+						input(type="username",class="form-control",id="inputusername",  placeholder="PSU Passport")
+				div(class="form-group")
+					label(for="inputpassword",class="col-sm-5 control-label") Password
+					div(class="col-sm-3")
+						input(type="password",class="form-control",id="inputpassword", placeholder="Password")
+				div(class="form-group")
+					label(for="",class="col-sm-5 control-label")
+					div(class="col-sm-3")
+						button(type="submit",class="btn btn-default") Login
