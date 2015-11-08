@@ -1,7 +1,7 @@
 extends layout/layout
 
 block content
-	if user.role != 'admin'
+	if user.roleid != 'admin'
 		div(class="page-header")
 			h1
 				center การทำรายการ

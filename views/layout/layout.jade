@@ -34,7 +34,7 @@ html
                             li
                                 a(href="home") Home
 
-                            if user.role != 'admin'
+                            if user.roleid != 'admin'
                                 li
                                     a(href="bring") เบิกอุปกรณ์
                                 li
@@ -61,7 +61,7 @@ html
                                         li
                                             a(href="userdetail") รายชื่อสมาชิก
                                 li
-                                    a(href="history")ประวัติ
+                                    a(href="history") ประวัติ
 
                         form(class="navbar-form navbar-right",role="search")
                             div(class="form-group")

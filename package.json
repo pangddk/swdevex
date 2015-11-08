@@ -25,15 +25,16 @@
     "url": "https://github.com/9ostrd/swdevex/issues"
   },
   "dependencies": {
-    "express": "~4.13.3",
-    "cookie-parser": "~1.4.0",
-    "path": "~0.12.7",
-    "express-session": "~1.12.1",
     "body-parser": "~1.14.1",
+    "bootstrap": "~3.3.5",
+    "cookie-parser": "~1.4.0",
+    "debug": "~2.2.0",
+    "express": "~4.13.3",
+    "express-session": "~1.12.1",
     "http": "0.0.0",
     "jade": "~1.11.0",
-    "bootstrap": "~3.3.5",
     "morgan": "~1.6.1",
-    "debug": "~2.2.0"
+    "mysql": "^2.9.0",
+    "path": "~0.12.7"
   }
 }
