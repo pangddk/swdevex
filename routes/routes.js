@@ -1,24 +1,30 @@
 module.exports = function(app, db) {
 
     app.get('/', function(req, res) {
-    	if(req.signedCookies.usersession)
+    	if(req.signedCookies.usersession){
     		res.redirect('/home');
+            return;
+        }
         res.render('user/login');
     });
 
     app.get('/home', function(req, res) {
-    	if(!req.signedCookies.usersession)
+    	if(!req.signedCookies.usersession){
     		res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('index', { user: user });
@@ -27,18 +33,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/bring', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('bring', { user: user });
@@ -47,18 +57,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/borrow', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('borrow', { user: user });
@@ -67,18 +81,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/return', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('return', { user: user });
@@ -93,6 +111,7 @@ module.exports = function(app, db) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             res.cookie('usersession', user.id, {maxAge: 999999, httpOnly: false, signed: true});
@@ -106,8 +125,10 @@ module.exports = function(app, db) {
     });
 
     app.get('/addthing', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -125,39 +146,123 @@ module.exports = function(app, db) {
         });
     });
 
-    app.get('/checkthing', function(req, res) {
-        if(!req.signedCookies.usersession)
+    app.post('/addthing', function(req, res) {
+        if(!req.signedCookies.usersession) {
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
+
+                var idthing = req.body.idthing;
+                var namething = req.body.namething;
+                var amount = req.body.amount;
+                var least = req.body.least;
+                
+                db.query('INSERT INTO thing (idthing, name, amount, least) VALUES (' + idthing + ', "' + namething + '", ' + amount + ', ' + least + ' )', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.render('addthing', { user: user, message: "fail !"});
+                        return;
+                    }
+                    res.render('addthing', { user: user, message: "ok !" });
+                });
+            });
+        });
+    });
+
+    app.get('/checkthing', function(req, res) {
+        if(!req.signedCookies.usersession){
+            res.redirect('/');
+            return;
+        }
+        db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            var user = rows[0];
+            db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                user.roleid = rows[0].name;
+                db.query('SELECT idthing, namething FROM thing WHERE idthing=', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    res.render('checkthing', { user: user, listThing: rows });
+                });
+            });
+        });
+    });
+
+    app.post('/checkthing', function(req, res) {
+        if(!req.signedCookies.usersession){
+            res.redirect('/');
+            return;
+        }
+        db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+           var user = rows[0];
+            db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                user.roleid = rows[0].name;
+                db.query('SELECT * FROM thing', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    res.render('checkthing', { user: user, listThing: rows });
+                });
                 res.render('checkthing', { user: user });
             });
         });
     });
 
     app.get('/adduser', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('adduser', { user: user });
@@ -166,18 +271,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/userdetail', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('userdetail', { user: user });
@@ -186,18 +295,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/history', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('history', { user: user });
@@ -206,18 +319,22 @@ module.exports = function(app, db) {
     });
 
     app.get('/show', function(req, res) {
-        if(!req.signedCookies.usersession)
+        if(!req.signedCookies.usersession){
             res.redirect('/');
+            return;
+        }
         db.query('SELECT * FROM user WHERE id=' + req.signedCookies.usersession, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
+                return;
             }
             var user = rows[0];
             db.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
+                    return;
                 }
                 user.roleid = rows[0].name;
                 res.render('show', { user: user });
