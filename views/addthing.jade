@@ -11,26 +11,27 @@ block content
 		div(class="col-xs-12 col-md-12")
 			if message
 				p= message
-			form(class="form-horizontal", method="POST", action="/addthing")
-				div(class="form-group")
-					label(for="inputitemid", class="col-sm-5 control-label") รหัสอุปกรณ์
-					div(class="col-sm-3")
-						input(type="text", class="form-control", id="inputitemid", placeholder="", name="idthing")
-				div(class="form-group")
-					label(for="inputitemname", class="col-sm-5 control-label") ชื่ออุปกรณ์
-					div(class="col-sm-3")
-						input(type="text", class="form-control", id="inputitemname" placeholder="", name="namething")
-				div(class="form-group")
-					label(for="inputamount", class="col-sm-5 control-label") จำนวน
-					div(class="col-sm-3")
-						input(type="number", class="form-control", id="inputamount", placeholder="", name="amount")
-				div(class="form-group")
-					label(for="inputleast",class="col-sm-5 control-label") ขั้นต่ำ
-					div(class="col-sm-3")
-						input(type="number", class="form-control", id="inputleast", placeholder="", name="least")
-				div(class="form-group")
-					div(class="col-sm-offset-5 col-sm-10")
-						br
-						button(type="submit", class="btn btn-default") ยืนยัน
-						button(class="btn btn-default") ยกเลิก
-						button(class="btn btn-default") กลับสู่หน้าแรก
+			else
+				form(class="form-horizontal", method="POST", action="/addthing")
+					div(class="form-group")
+						label(for="inputitemid", class="col-sm-5 control-label") รหัสอุปกรณ์
+						div(class="col-sm-3")
+							input(type="text", class="form-control", id="inputitemid", placeholder="", name="idthing")
+					div(class="form-group")
+						label(for="inputitemname", class="col-sm-5 control-label") ชื่ออุปกรณ์
+						div(class="col-sm-3")
+							input(type="text", class="form-control", id="inputitemname" placeholder="", name="namething")
+					div(class="form-group")
+						label(for="inputamount", class="col-sm-5 control-label") จำนวน
+						div(class="col-sm-3")
+							input(type="number", class="form-control", id="inputamount", placeholder="", name="amount")
+					div(class="form-group")
+						label(for="inputleast",class="col-sm-5 control-label") ขั้นต่ำ
+						div(class="col-sm-3")
+							input(type="number", class="form-control", id="inputleast", placeholder="", name="least")
+					div(class="form-group")
+						div(class="col-sm-offset-5 col-sm-10")
+							br
+							button(type="submit", class="btn btn-default") ยืนยัน
+							button(class="btn btn-default") ยกเลิก
+							button(class="btn btn-default") กลับสู่หน้าแรก
