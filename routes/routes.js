@@ -65,28 +65,45 @@ module.exports = function(app, db, passport) {
 
     app.post('/checkthing', loggedIn, function(req, res) {
         var search = req.body.search;
-            if(isNaN(search)){
-                db.query('SELECT * FROM thing WHERE name="' + search + '"', function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    res.render('checkthing', { listThing: rows });
-                });
-            } else {
-                db.query('SELECT * FROM thing WHERE idthing=' + search, function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    res.render('checkthing', { listThing: rows });
-                });
-            }   
+        if(search == ""){
+            res.redirect('/checkthing');
+            return;
+        }
+        if(isNaN(search)){
+            db.query('SELECT * FROM thing WHERE name="' + search + '"', function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('checkthing', { listThing: rows });
+            });
+        } else {
+            db.query('SELECT * FROM thing WHERE idthing=' + search, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('checkthing', { listThing: rows });
+            });
+        }   
+    });
+
+    app.post('/checkthing/delete', loggedIn, function(req, res) {
+        var idthing = req.body.idthing;
+        db.query('DELETE FROM thing WHERE idthing=' + idthing, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/checkthing');
+                return;
+            }
+            res.redirect('/checkthing');
+        });
     });
 
     app.get('/adduser', loggedIn, function(req, res) {
+
         res.render('adduser');
     });
 
@@ -122,25 +139,41 @@ module.exports = function(app, db, passport) {
 
     app.post('/userdetail', loggedIn, function(req, res) {
         var search = req.body.search;
-            if(isNaN(search)){
-                db.query('SELECT * FROM user WHERE username="' + search + '"', function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    res.render('userdetail', {listUser: rows });
-                });
-            } else {
-                db.query('SELECT * FROM user WHERE id=' + search, function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    res.render('userdetail', {listUser: rows });
-                });
-            }   
+        if(search == ""){
+            res.redirect('/userdetail');
+            return;
+        }
+        if(isNaN(search)){
+            db.query('SELECT * FROM user WHERE username="' + search + '"', function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('userdetail', {listUser: rows });
+            });
+        } else {
+            db.query('SELECT * FROM user WHERE id=' + search, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('userdetail', {listUser: rows });
+            });
+        }   
+    });
+
+    app.post('/userdetail/delete', loggedIn, function(req, res) {
+        var uname = req.body.username;
+        db.query('DELETE FROM user WHERE username="' + uname + '"', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/userdetail');
+                return;
+            }
+            res.redirect('/userdetail');
+        });
     });
 
     app.get('/history', loggedIn, function(req, res) {
@@ -153,6 +186,52 @@ module.exports = function(app, db, passport) {
 
     app.get('/approve', loggedIn, function(req, res) {
         res.render('approve');
+    });
+
+    app.get('/noti', loggedIn, function(req, res) {
+        res.render('noti');
+    });
+
+    app.get('/detail', loggedIn, function(req, res) {
+        res.render('detail');
+    });
+
+    app.get('/userhistory', loggedIn, function(req, res) {
+        db.query('SELECT * FROM borrowhistory', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            res.render('userhistory', { listBorrow: rows });
+        });
+    });
+
+    app.post('/userhistory', loggedIn, function(req, res) {
+        var search = req.body.search;
+        if(search == ""){
+            res.redirect('/userhistory');
+            return;
+        }
+        if(isNaN(search)){
+            db.query('SELECT * FROM borrowhistory WHERE username="' + search + '"', function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('userhistory', { listBorrow: rows });
+            });
+        } else {
+            db.query('SELECT * FROM borrowhistory WHERE idborrow=' + search, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                res.render('userhistory', { listBorrow: rows });
+            });
+        }   
     });
 
     // catch 404 and forward to error handler

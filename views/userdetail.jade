@@ -23,4 +23,8 @@ block content
 					tr
 						td= item.id
 						td= item.username
+						td
+							form(method="post", action="/userdetail/delete")
+									input(type="text", name="username", value= item.username, hidden)
+									button(type="submit",class="btn btn-default") delete
 					

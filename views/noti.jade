@@ -5,31 +5,33 @@ block content
 		div(class "col-xs-12 col-md-12")
 			center
 				div(class="page-header")
-					h1 รายละเอียดอุปกรณ์
+					h1 การแจ้งเตือน
 				br
 			form(class="form-horizontal form-center",role="search", method="POST", action="/checkthing")
 				div(class="form-group")
 					label(for="search", class="col-sm-4 control-label") ค้นหา
 					div(class="col-sm-4")
-						input(type="text", class="form-control", placeholder="รหัส/ชื่ออุปกรณ์", name="search")
+						input(type="text", class="form-control", placeholder="รายการ/username", name="search")
 					button(type="submit", class="btn btn-default") search
 			table(id="itemTable", align="center", style="width:50%", class="table table-striped")
 				thead
 					tr
-						th รหัส
 						th ชื่อ
-						th จำนวน
-						th delete
+						th รายการ
+						th ประเภท
+						th 
 				tbody
-					-each item in listThing
-						tr
-							td= item.idthing
-							td= item.name
-							td= item.amount
-							td
-								form(method="post", action="/checkthing/delete")
-									input(type="text", name="idthing", value= item.idthing, hidden)
-									button(type="submit",class="btn btn-default") delete
+					tr
+						td pungpond
+						td ดินสอปากกายางลบ
+						td
+							a(href="detail") รายละเอียด
+			div(class="form-group")
+					div(class="col-sm-offset-5 col-sm-10")
+						br
+						button(type="submit", class="btn btn-default") ยืนยันรายการ
+						
+			
 
 
 					
