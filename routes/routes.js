@@ -25,7 +25,121 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/borrow', loggedIn, function(req, res) {
-        res.render('borrow');
+        var thinglist = undefined;
+        var borrowlist = undefined;
+        db.query('SELECT * FROM thing', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            thinglist = rows;
+            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                borrowlist = [];
+                for (x in rows) {
+                    borrowlist.push({
+                        id: rows[x].id,
+                        name: rows[x].name
+                    });
+                }
+                res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
+            });
+        });
+    });
+
+    app.post('/borrow/add', loggedIn, function(req, res) {
+        var choose = req.body.choose;
+        db.query('INSERT INTO templist (idthing, iduser, number) VALUES (' + choose + ', ' + req.user.id + ', 0 )', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/borrow');
+                return;
+            }
+            res.redirect('/borrow');
+        });
+    });
+
+    app.post('/borrow/save', loggedIn, function(req, res) {
+        var choose = req.body.choose;
+        db.query('INSERT INTO templist (idthing, iduser, number) VALUES (' + choose + ', ' + req.user.id + ', 0 )', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/borrow');
+                return;
+            }
+            res.redirect('/borrow');
+        });
+        db.query('DELETE FROM thing WHERE idthing=' + idthing, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/checkthing');
+                return;
+            }
+            res.redirect('/checkthing');
+        });
+    });
+
+    app.post('/borrow', loggedIn, function(req, res) {
+        var search = req.body.search;
+        if(search == ""){
+            res.redirect('/borrow');
+            return;
+        }
+
+        if(isNaN(search)){
+            db.query('SELECT * FROM thing WHERE name="' + search + '"', function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                var thinglist = rows;
+                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    var borrowlist = [];
+                    for (x in rows) {
+                        borrowlist.push({
+                            id: rows[x].id,
+                            name: rows[x].name
+                        });
+                    }
+                    res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
+                });
+            });
+        } else {
+            db.query('SELECT * FROM thing WHERE idthing=' + search, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/');
+                    return;
+                }
+                var thinglist = rows;
+                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    var borrowlist = [];
+                    for (x in rows) {
+                        borrowlist.push({
+                            id: rows[x].id,
+                            name: rows[x].name
+                        });
+                    }
+                    res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
+                });
+            });
+        }   
     });
 
     app.get('/return', loggedIn, function(req, res) {
@@ -110,13 +224,14 @@ module.exports = function(app, db, passport) {
     app.post('/adduser', loggedIn, function(req, res) {
         var username = req.body.username;
         var password = req.body.password;
+        var idrole = req.body.idrole;
         var name = req.body.nameuser;
         var surname = req.body.surname;
         var tel = req.body.tel;
         var passcode = req.body.passcode;
         var rfid = req.body.rfid;
         
-        db.query('INSERT INTO user (username, password, nameuser, surname, tel, passcode, rfid) VALUES ("' + username + '", "' + password + '", "' + name + '", "' + surname + '", "' + tel + '", ' + passcode + ', ' + rfid + ' )', function(err, rows, fields) {
+        db.query('INSERT INTO user (username, password, roleid, nameuser, surname, tel, passcode, rfid) VALUES ("' + username + '", "' + password + '", ' + idrole +', "' + name + '", "' + surname + '", "' + tel + '", ' + passcode + ', ' + rfid + ' )', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.render('adduser', { message: "ลองใหม่อีกครั้ง" });
