@@ -1,21 +1,17 @@
 extends layout/layout
 
 block content
-	if user.roleid != 'admin'
+	if user.role != 'admin'
 		div(class="page-header")
-			h1
-				center การทำรายการ
+			h1(class="text-center") การทำรายการ
 		div(class="alert alert-info",role="alert") มารับของที่เบิก-ยืมไม่เกิน 3 ชั่วโมง หลังจากทำรายการสำเร็จ
 		div(class="alert alert-danger",role="alert") คืนของที่ยืมไปภายใน 7 วัน
 		div(class="alert alert-success",role="alert") หากมีข้อสงสัย สามารถติดต่อได้ที่ ( เบอร์พี่หนาม )	
 		br
 		br
-
 		center
-			img(src="image/welcome.jpg",class="img-rounded")
+			img(src="image/welcome.jpg", class="img-responsive")
 	else
 		div(class="page-header")
-				h1
-					center Home 
-		h2 
-			center Hello Admin!
+			h1(class="text-center") Home 
+		h2(class="text-center") Hello Admin!

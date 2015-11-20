@@ -1,0 +1,23 @@
+extends layout/layout
+
+block content
+	div(class="row")
+		div(class "col-xs-12 col-md-12")
+			center
+				div(class="page-header")
+					h1 รายการ
+				br
+			table(id="itemTable", align="center", style="width:50%", class="table table-striped")
+				thead
+					tr
+						th วันที่
+						th รายการ
+						th สถานะ
+						
+				tbody
+					-each item in listThing
+						tr
+							td= item.date
+							td= item.idwork
+							td
+						

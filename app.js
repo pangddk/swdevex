@@ -28,22 +28,22 @@ var passport = require('passport')
 
 passport.use(new LocalStrategy(
   	function(username, password, done) {
-  		connection.query('SELECT * FROM user WHERE username="' + username + '" and password="' + password + '"', function(err, rows, fields) {
+      var srtq = 'SELECT user.id, user.nameuser, user.surname, role.name AS role ' +
+                 'FROM user INNER JOIN role ON ' + 
+                 'user.username="' + username + '" ' +
+                 'and user.password="' + password + '" ' +
+                 'and role.id=user.roleid ' +
+                 'and user.status=true';
+  		connection.query(srtq, function(err, rows, fields) {
             if (err) {
-                return done(err);
+              return done(err);
             }
             if (rows.length <= 0) {
-	        	return done(null, false);
-	        }
-	        var user = rows[0];
-	        connection.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
-                if (err) {
-                	return done(err);
-                }
-                user.roleid = rows[0].name;
-                return done(null, user);
-            });
-        });
+	        	  return done(null, false);
+	          }
+	          var user = rows[0];
+            return done(null, user);
+      });
   	}
 ));
 
@@ -52,13 +52,20 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
-    connection.query('SELECT * FROM user WHERE id=' + id, function(err, rows, fields) {
+    var srtq = 'SELECT user.id, user.nameuser, user.surname, role.name AS role ' +
+               'FROM user INNER JOIN role ON ' + 
+               'user.id=' + id + ' ' +
+               'and role.id=user.roleid';
+    connection.query(srtq, function(err, rows, fields) {
+          if (err) {
+              return done(err);
+          }
+          if (rows.length <= 0) {
+          return done(null, false);
+        }
         var user = rows[0];
-        connection.query('SELECT * FROM role WHERE id=' + rows[0].roleid, function(err, rows, fields) {
-            user.roleid = rows[0].name;
-            return done(null, user);
-        });
-    });
+        return done(null, user);
+      });
 });
 
 app.use(express.static(path.join(__dirname, 'public')));

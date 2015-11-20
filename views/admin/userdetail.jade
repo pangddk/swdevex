@@ -1,0 +1,32 @@
+extends ../layout/layout
+
+block content
+	div(class="row")
+		div(class "col-xs-12 col-md-12")
+			div(class="page-header")
+				h1(class="text-center") รายชื่อสมาชิก
+			br
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal form-center",role="search", method="POST", action="/userdetail")
+				div(class="form-group")
+					label(for="search", class="col-sm-4 control-label") ค้นหา
+					div(class="col-sm-4")
+						input(type="text", class="form-control", placeholder="รหัส/ชื่อสมาชิก", name="search")
+					div(class="col-sm-4")
+						button(type="submit", class="btn btn-default") search
+			table(id="itemTable", align="center", class="table table-striped")
+				thead
+					tr
+						th รหัสสมาชิก
+						th ชื่อสมาชิก
+				tbody
+					-each item in listUser
+						tr
+							td= item.id
+							td= item.username
+							td
+								form(method="post", action="/userdetail/delete")
+										input(type="text", name="username", value= item.username, hidden)
+										button(type="submit",class="btn btn-default") delete
+					
