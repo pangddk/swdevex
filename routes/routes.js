@@ -42,7 +42,7 @@ module.exports = function(app, db, passport) {
                 return;
             }
             thinglist = rows;
-            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
+            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser=' + req.user.id , function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
@@ -72,9 +72,11 @@ module.exports = function(app, db, passport) {
         });
     });
 
-    app.post('/borrow/save', loggedIn, function(req, res) {
-        var choose = req.body.choose;
-        db.query('INSERT INTO templist (idthing, iduser, number) VALUES (' + choose + ', ' + req.user.id + ', 0 )', function(err, rows, fields) {
+    app.get('/borrow/delete', loggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
+                 'id=' + choose;
+        db.query(qr, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/borrow');
@@ -82,14 +84,39 @@ module.exports = function(app, db, passport) {
             }
             res.redirect('/borrow');
         });
-        db.query('DELETE FROM thing WHERE idthing=' + idthing, function(err, rows, fields) {
-            if (err) {
-                throw err;
-                res.redirect('/checkthing');
-                return;
-            }
-            res.redirect('/checkthing');
-        });
+    });
+
+    app.post('/borrow/save', loggedIn, function(req, res) {
+        var chooses = req.body;
+        for(var k in chooses){
+            console.log(k,chooses[k]);
+            db.query('SELECT id, idthing FROM templist WHERE id=' + k, function(err, rows, fields) {
+                if (err) {
+                    throw err;
+                    res.redirect('/borrow');
+                    return;
+                }
+                var delid = rows[0].id;
+                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', 0, "borrow" )', function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/borrow');
+                        return;
+                    }
+                    var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
+                             'id=' + delid;
+                    db.query(qr, function(err, rows, fields) {
+                        if (err) {
+                            throw err;
+                            res.redirect('/borrow');
+                            return;
+                        }
+                    });
+                });
+            });
+        }
+        res.redirect('/borrow');
+        return;
     });
 
     app.post('/borrow', loggedIn, function(req, res) {
@@ -98,56 +125,30 @@ module.exports = function(app, db, passport) {
             res.redirect('/borrow');
             return;
         }
-
-        if(isNaN(search)){
-            db.query('SELECT * FROM thing WHERE name="' + search + '"', function(err, rows, fields) {
+        var search = isNaN(req.body.search) ? 'name="' + req.body.search + '"':'idthing="' + req.body.search + '"';
+        db.query('SELECT * FROM thing WHERE ' + search , function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            var thinglist = rows;
+            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id , function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
                     return;
                 }
-                var thinglist = rows;
-                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    var borrowlist = [];
-                    for (x in rows) {
-                        borrowlist.push({
-                            id: rows[x].id,
-                            name: rows[x].name
-                        });
-                    }
-                    res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
-                });
-            });
-        } else {
-            db.query('SELECT * FROM thing WHERE idthing=' + search, function(err, rows, fields) {
-                if (err) {
-                    throw err;
-                    res.redirect('/');
-                    return;
+                var borrowlist = [];
+                for (x in rows) {
+                    borrowlist.push({
+                        id: rows[x].id,
+                        name: rows[x].name
+                    });
                 }
-                var thinglist = rows;
-                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id + ' ', function(err, rows, fields) {
-                    if (err) {
-                        throw err;
-                        res.redirect('/');
-                        return;
-                    }
-                    var borrowlist = [];
-                    for (x in rows) {
-                        borrowlist.push({
-                            id: rows[x].id,
-                            name: rows[x].name
-                        });
-                    }
-                    res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
-                });
+                res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
             });
-        }   
+        });
     });
 
     app.get('/userres', loggedIn, function(req, res) {
