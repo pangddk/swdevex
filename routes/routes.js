@@ -62,7 +62,7 @@ module.exports = function(app, db, passport) {
 
     app.post('/borrow/add', loggedIn, function(req, res) {
         var choose = req.body.choose;
-        db.query('INSERT INTO templist (idthing, iduser, number) VALUES (' + choose + ', ' + req.user.id + ', 0 )', function(err, rows, fields) {
+        db.query('INSERT INTO templist (idthing, iduser) VALUES (' + choose + ', ' + req.user.id + ' )', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/borrow');
@@ -129,14 +129,18 @@ module.exports = function(app, db, passport) {
         db.query('SELECT * FROM thing WHERE ' + search , function(err, rows, fields) {
             if (err) {
                 throw err;
-                res.redirect('/');
+                res.redirect('/borrow');
                 return;
             }
             var thinglist = rows;
-            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.iduser=' + req.user.id , function(err, rows, fields) {
+            if(thinglist.length <= 0){
+                res.redirect('/borrow');
+                return;
+            }
+            db.query('SELECT * FROM thing INNER JOIN templist ON templist.status=true AND thing.idthing=templist.idthing AND templist.iduser=' + req.user.id , function(err, rows, fields) {
                 if (err) {
                     throw err;
-                    res.redirect('/');
+                    res.redirect('/borrow');
                     return;
                 }
                 var borrowlist = [];
@@ -322,11 +326,26 @@ module.exports = function(app, db, passport) {
         res.render('detail');
     });
 
+    app.get('/thingdetail', loggedIn, function(req, res) {
+        var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, thing.name, borrowhistory.amount, borrowhistory.date ' +
+                 'FROM borrowhistory INNER JOIN user ON ' + 
+                 'borrowhistory.userid=user.id ' +
+                 'and user.id=' + req.user.id + ' INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
+        db.query(sq, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            res.render('thingdetail', { idwork: rows[0].idwork, listBorrow: rows });
+        });
+    });
+
     app.get('/userhistory', loggedIn, function(req, res) {
         var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, user.nameuser, user.surname, borrowhistory.date ' +
                  'FROM borrowhistory INNER JOIN user ON ' + 
                  'borrowhistory.userid=user.id ' +
-                 'and user.id=' + req.user.id ;
+                 'and user.id=' + req.user.id + ' GROUP BY borrowhistory.idwork';
         db.query(sq, function(err, rows, fields) {
             if (err) {
                 throw err;
