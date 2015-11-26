@@ -1,92 +1,56 @@
 extends layout/layout
 
 block content
-	div(class="page-header")
-				h1 
-					center เบิกอุปกรณ์
-			div(class="item-1")
-				div(class="row")
-					div(class="col-md-2 col-md-offset-2")
-						center
-							p รายการที่ 1
-					div(class="col-md-3")
-						button(class="btn btn-default dropdown-toggle",type="button",id="dropdownMenu1",data-toggle="dropdown",aria-haspopup="true",aria-expanded="true",style="width: 100%") เลือกอุปกรณ์
-							span(class="caret")
-						ul(class="dropdown-menu",aria-labelledby="dropdownMenu1")
-							li
-								a(href="#") ปากกา
-							li
-								a(href="#") กรรไกร
-							li
-								a(href="#") ชอล์ก
-							li
-								a(href="#") ลวดเย็บกระดาษ
-					div(class="col-md-1")
-						center จำนวน
-					div(class="col-md-1")
-						center
-							input(type="text",class="form-control",placeholder="จำนวน")
-			div(class="item-2")
-				div(class="row")
-					div(class="col-md-2 col-md-offset-2")
-						center
-							p รายการที่ 2
-					div(class="col-md-3")
-						button(class="btn btn-default dropdown-toggle",type="button",id="dropdownMenu1",data-toggle="dropdown",aria-haspopup="true",aria-expanded="true",style="width: 100%") เลือกอุปกรณ์
-							span(class="caret")
-						ul(class="dropdown-menu",aria-labelledby="dropdownMenu1")
-							li
-								a(href="#") ปากกา
-							li
-								a(href="#") กรรไกร
-							li
-								a(href="#") ชอล์ก
-							li
-								a(href="#") ลวดเย็บกระดาษ
-					div(class="col-md-1")
-						center จำนวน
-					div(class="col-md-1")
-						center
-							input(type="text",class="form-control",placeholder="จำนวน")
-			div(class="item-3")
-				div(class="row")
-					div(class="col-md-2 col-md-offset-2")
-						center
-							p รายการที่ 3
-					div(class="col-md-3")
-						button(class="btn btn-default dropdown-toggle",type="button",id="dropdownMenu1",data-toggle="dropdown",aria-haspopup="true",aria-expanded="true",style="width: 100%") เลือกอุปกรณ์
-							span(class="caret")
-						ul(class="dropdown-menu",aria-labelledby="dropdownMenu1")
-							li
-								a(href="#") ปากกา
-							li
-								a(href="#") กรรไกร
-							li
-								a(href="#") ชอล์ก
-							li
-								a(href="#") ลวดเย็บกระดาษ
-					div(class="col-md-1")
-						center จำนวน
-					div(class="col-md-1")
-						center
-							input(type="text",class="form-control",placeholder="จำนวน")
-			div(class="date-time")
-					div(class="col-md-11")
-						center
-							br
-							p รับอุปกรณ์ภายในเวลา
-							script(type="text/javascript").
-								var currentTime = new Date();
-								var hours = currentTime.getHours();
-								var minutes = currentTime.getMinutes();
-								var a = hours + 3;
-								if (minutes < 10){
-									minutes = "0" + minutes;
-								}
-								document.write(a + ":" + minutes + " ");
-			div(class="submit")
-				div(class="col-md-11")
-					center
-						br
-						button(type="button",class="btn btn-default btn-lg")ยืนยัน
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			div(class="page-header")
+				h1(class="text-center") เบิกอุปกรณ์
+
+	h3 อุปกรณ์ที่เลือก
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal form-center", method="POST", action="/bring/save")
+				div(class="col-md-12 text-right")
+					table(id="itemTable", align="center", class="table table-striped")
+						thead
+							tr
+								th อุปกรณ์
+								th
+								th จำนวน
+						tbody
+							if wishlist.length > 0
+								-each item in wishlist
+									tr
+										td(class="col-xs-4 col-md-9 text-left")= item.name
+										td(class="col-xs-4 col-md-1 text-right")
+											a(class="btn btn-default", href= "/bring/delete?choose=" + item.id) ลบ
+										td(class="col-xs-4 col-md-2") 
+											input(type="text", class="form-control", placeholder="จำนวน", name=item.id)
+							else
+								tr
+									td(class="col-xs-4 col-md-9") -
+									td(class="col-xs-4 col-md-1")
+									td(class="col-xs-4 col-md-2") -
+					div(class="col-md-12 text-right")
+						button(type="submit",class="btn btn-default") ยืนยัน
+
+	h3 เลือกอุปกรณ์				
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			form(class="form-horizontal form-center",role="search", method="POST", action="/bring")
+				div(class="form-group")
+					label(for="search", class="col-xs-2 col-sm-4 control-label") ค้นหา
+					div(class="col-xs-6 col-sm-4")
+						input(type="text", class="form-control", placeholder="รหัส/ชื่ออุปกรณ์", name="search")
+					div(class="col-xs-4 col-sm-4")
+						button(type="submit", class="btn btn-default") search				
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			-each item in listThing
+				div(class="col-xs-3 col-xs-offset-3col-md-3 col-md-offset-3")= item.name
+				div(class="col-xs-3 col-md-3  text-right")
+					form(class="form-horizontal form-center", method="POST", action="/bring/add")
+						input(type="hidden", class="form-control", name="choose", value=item.idthing)
+						button(type="submit", class="btn btn-default") เลือก
+	
 							

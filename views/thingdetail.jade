@@ -11,11 +11,14 @@ block content
 						th วันที่ทำรายการ
 						th รายการ
 						th จำนวน
+						th
 				tbody
 					-each item in listBorrow
 						tr
 							td= item.date
 							td= item.name
 							td= item.amount
+							td(class="col-xs-4 col-md-1 text-right")
+											a(class="btn btn-default", href= "/thingdetail/delete?choose=" + item.idthing) ลบ
 							
 						
