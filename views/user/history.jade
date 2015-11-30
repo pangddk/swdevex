@@ -8,7 +8,7 @@ block content
 			br
 	div(class="row")
 		div(class="col-xs-12 col-md-12")
-			form(class="form-horizontal form-center",role="search")
+			form(class="form-horizontal form-center",role="search", method="POST", action="/userhistory")
 				div(class="form-group")
 					label(for="search", class="col-sm-4 control-label") ค้นหา
 					div(class="col-sm-4")
@@ -21,13 +21,27 @@ block content
 						th วันที่ทำรายการ
 						th รายการ
 						th สมาชิก
-						th 
+						th สถานะ
+						th
+						th
 				tbody
-					-each item in listBorrow
+					if listBorrow.length <= 0
 						tr
-							td= item.date
-							td= item.idwork
-							td= item.nameuser + ' ' + item.surname
-							td
-								a(href="thingdetail") รายละเอียด
+							td -
+							td -
+							td -
+							td -
+							td -
+							td -
+					else
+						-each item in listBorrow
+							tr
+								td= item.date
+								td= item.idwork
+								td= item.nameuser + ' ' + item.surname
+								td= item.status
+								td
+									a(href="thingdetail") รายละเอียด
+								td(class="col-xs-4 col-md-1 text-right")
+												a(class="btn btn-default", href= "/userhistory/delete?choose=" + item.idwork) ลบ
 				

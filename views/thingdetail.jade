@@ -5,20 +5,28 @@ block content
 		div(class="col-xs-12 col-md-12")
 			div(class="page-header")
 				h1(class="text-center")= 'รายละเอียดรายการที่ ' + idwork
+			div(class="row")
+					div(class="text-right col-xs-6 col-md-11")
+						p= status
+					div(class="col-xs-6 col-md-1")
+						a(class="btn btn-default", href= "/thingdetail/delete?choose=" + idwork) ลบ
 			table(id="itemTable", class="table table-striped")
 				thead
 					tr
 						th วันที่ทำรายการ
 						th รายการ
 						th จำนวน
-						th
 				tbody
-					-each item in listBorrow
+					if listBorrow.length <= 0
 						tr
-							td= item.date
-							td= item.name
-							td= item.amount
-							td(class="col-xs-4 col-md-1 text-right")
-											a(class="btn btn-default", href= "/thingdetail/delete?choose=" + item.idthing) ลบ
-							
+							td -
+							td -
+							td -
+					else
+						-each item in listBorrow
+							tr
+								td= item.date
+								td= item.name
+								td= item.amount
+														
 						
