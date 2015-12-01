@@ -1,20 +1,32 @@
 extends layout/layout
 
 block content
-	table(id="itemTable", align="center", style="width:50%", class="table table-striped")
-				thead
-					tr
-						th ลำดับ
-						th รายการ
-						th จำนวน						
-				tbody
-					tr
-						td
-						td
-						td
+	div(class="row")
+		div(class "col-xs-12 col-md-12")
+			div(class="page-header")
+				h1(class="text-center")= 'รายละเอียดรายการ ' +username
+			div(class="row")
+					div(class="text-right col-xs-6 col-md-11")
+						p= status
+					div(class="col-xs-6 col-md-1")
+						a(class="btn btn-default", href= "/detail/delete?choose=" + idwork) ลบ
+	div(class="row")
+		div(class="col-xs-12 col-md-12")
+			table(id="itemTable", class="table table-striped")
+						thead
+							tr
+								th ลำดับ
+								th รายการ
+								th จำนวน						
+						tbody
+							-each item in listBorrow
+								tr
+									td
+									td= item.name
+									td= item.amount
 	div(class="row")
 		div(class="col-xs-12 col-md-12")
 			div(class="form-group")
 				div(class="col-sm-offset-5 col-sm-6")
 					br
-					button(type="submit", class="btn btn-default") ยืนยัน
+					a(class="btn btn-default", href= "/detail/comfirm?choose=" + idwork) ยืนยัน

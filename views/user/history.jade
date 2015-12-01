@@ -41,7 +41,7 @@ block content
 								td= item.nameuser + ' ' + item.surname
 								td= item.status
 								td
-									a(href="thingdetail") รายละเอียด
+									a(href="/thingdetail?choose="+ item.idwork) รายละเอียด
 								td(class="col-xs-4 col-md-1 text-right")
 												a(class="btn btn-default", href= "/userhistory/delete?choose=" + item.idwork) ลบ
 				

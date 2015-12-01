@@ -93,7 +93,7 @@ module.exports = function(app, db, passport) {
                     return;
                 }
                 var delid = rows[0].id;
-                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', 0, "bring" )', function(err, rows, fields) {
+                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + makeid() + '", "bring" )', function(err, rows, fields) {
                     if (err) {
                         throw err;
                         res.redirect('/bring');
@@ -217,7 +217,7 @@ module.exports = function(app, db, passport) {
                     return;
                 }
                 var delid = rows[0].id;
-                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', 0, "borrow" )', function(err, rows, fields) {
+                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + makeid() + '", "borrow" )', function(err, rows, fields) {
                     if (err) {
                         throw err;
                         res.redirect('/borrow');
@@ -420,7 +420,33 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/history', adminloggedIn, function(req, res) {
-        db.query('SELECT * FROM borrowhistory, user WHERE borrowhistory.userid= user.id ', function(err, rows, fields) {
+        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid=user.id GROUP BY borrowhistory.idwork', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            console.log(rows);
+            for(var i in rows){
+                if(rows[i].status == 1){
+                    rows[i].status = "pending";
+                }else if(rows[i].status == 2){
+                    rows[i].status = "submited";
+                }else if(rows[i].status == 0){
+                    rows[i].status = "canceled";                    
+                }
+            }
+            res.render('admin/history', { listThing: rows });
+        });
+    });
+
+    app.post('/history', adminloggedIn, function(req, res) {
+        if(req.body.search == ""){
+            res.redirect('/history');
+            return;
+        }
+        var search = isNaN(req.body.search) ? 'user.nameuser="' + req.body.search + '"':'borrowhistory.idwork="' + req.body.search + '"';
+        db.query('SELECT * FROM borrowhistory, user WHERE ' + search + ' GROUP BY borrowhistory.idwork' , function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
@@ -435,20 +461,124 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/approve', loggedIn, function(req, res) {
-        res.render('approve');
+        db.query('SELECT * FROM borrowhistory, user WHERE borrowhistory.userid= user.id AND borrowhistory.status=1 GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            res.render('approve', { idwork: rows[0].idwork, listThing: rows });
+        });
+    });
+
+    app.get('/approve/comfirm', adminloggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var qr = 'UPDATE borrowhistory SET status=2 WHERE status=1 AND ' +
+                 'idwork=' + choose;
+        db.query(qr, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/approve');
+                return;
+            }
+            res.redirect('/noti');
+        });
     });
 
     app.get('/noti', loggedIn, function(req, res) {
-        res.render('noti');
+        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid= user.id AND borrowhistory.status=1 GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            for(var i in rows){
+                if(rows[i].status == 1){
+                    rows[i].status = "pending";
+                }else if(rows[i].status == 2){
+                    rows[i].status = "submited";
+                }else if(rows[i].status == 0){
+                    rows[i].status = "canceled";                    
+                }
+            }
+            res.render('noti', { listThing: rows });
+        });
+    });
+
+    app.post('/noti', adminloggedIn, function(req, res) {
+        if(req.body.search == ""){
+            res.redirect('/noti');
+            return;
+        }
+        var search = isNaN(req.body.search) ? 'user.nameuser="' + req.body.search + '"':'borrowhistory.idwork="' + req.body.search + '"';
+        db.query('SELECT * FROM borrowhistory, user WHERE ' + search + 'AND borrowhistory.status=1' + ' GROUP BY borrowhistory.idwork' , function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            res.render('noti', { listThing: rows });
+        });
     });
 
     app.get('/detail', loggedIn, function(req, res) {
-        res.render('detail');
-    });
-
-    app.get('/thingdetail', loggedIn, function(req, res) {
         var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, thing.name, borrowhistory.amount, borrowhistory.date, borrowhistory.status ' +
                  'FROM borrowhistory INNER JOIN user ON ' + 
+                 'borrowhistory.userid=user.id ' +
+                 'and borrowhistory.status=1 INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
+        db.query(sq, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            for(var i in rows){
+                if(rows[i].status == 1){
+                    rows[i].status = "pending";
+                }else if(rows[i].status == 2){
+                    rows[i].status = "submited";
+                }else if(rows[i].status == 0){
+                    rows[i].status = "canceled";                    
+                }
+            }
+            res.render('detail', { idwork: rows[0].idwork, listBorrow: rows, status: rows[0].status });
+        });
+    });
+
+    app.get('/detail/delete', loggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var qr = 'UPDATE borrowhistory SET status=0 WHERE status=1 AND ' +
+                 'idwork=' + choose;
+        db.query(qr, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/detail');
+                return;
+            }
+            res.redirect('/noti');
+        });
+    });
+
+    app.get('/detail/comfirm', adminloggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var qr = 'UPDATE borrowhistory SET status=2 WHERE status=1 AND ' +
+                 'idwork="' + choose + '"';
+        db.query(qr, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/detail');
+                return;
+            }
+            res.redirect('/noti');
+        });
+    });
+
+
+    app.get('/thingdetail', loggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, thing.name, borrowhistory.amount, borrowhistory.date, borrowhistory.status ' +
+                 'FROM borrowhistory INNER JOIN user ON ' + 
+                 'borrowhistory.idwork="' + choose + '" and ' +
                  'borrowhistory.userid=user.id ' +
                  'and borrowhistory.status=1 and user.id=' + req.user.id + ' INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
         db.query(sq, function(err, rows, fields) {
@@ -472,8 +602,9 @@ module.exports = function(app, db, passport) {
 
     app.get('/thingdetail/delete', loggedIn, function(req, res) {
         var choose = req.query.choose;
-        var qr = 'UPDATE borrowhistory SET status=false WHERE status=true AND ' +
-                 'idwork=' + choose;
+        var qr = 'UPDATE borrowhistory SET status=0 WHERE status=1 AND ' +
+                 'idwork="' + choose + '"';
+        console.log(qr)
         db.query(qr, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -510,8 +641,8 @@ module.exports = function(app, db, passport) {
 
     app.get('/userhistory/delete', loggedIn, function(req, res) {
         var choose = req.query.choose;
-        var qr = 'UPDATE borrowhistory SET status=false WHERE status=true AND ' +
-                 'idwork=' + choose;
+        var qr = 'UPDATE borrowhistory SET status=0 WHERE status=1 AND ' +
+                 'idwork="' + choose + '"';
         db.query(qr, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -548,6 +679,17 @@ module.exports = function(app, db, passport) {
             });
         }   
     });
+
+    function makeid()
+    {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for( var i=0; i < 8; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+    }
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {

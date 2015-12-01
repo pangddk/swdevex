@@ -21,10 +21,12 @@ block content
 						th วันที่ทำรายการ
 						th รายการ
 						th สมาชิก
+						th สถานะ
 				tbody
 					-each item in listThing
 						tr
 							td= item.date
 							td= item.idwork
 							td= item.nameuser
+							td= item.status
 				
