@@ -31,14 +31,14 @@ module.exports = function(app, db, passport) {
     app.get('/bring', loggedIn, function(req, res) {
         var thinglist = undefined;
         var borrowlist = undefined;
-        db.query('SELECT * FROM thing', function(err, rows, fields) {
+        db.query('SELECT * FROM thing WHERE cate=1', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
                 return;
             }
             thinglist = rows;
-            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser=' + req.user.id , function(err, rows, fields) {
+            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser= ' + req.user.id, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
@@ -84,6 +84,7 @@ module.exports = function(app, db, passport) {
 
     app.post('/bring/save', loggedIn, function(req, res) {
         var chooses = req.body;
+        var borrow_id = makeid();
         for(var k in chooses){
             console.log(k,chooses[k]);
             db.query('SELECT id, idthing FROM templist WHERE id=' + k, function(err, rows, fields) {
@@ -93,21 +94,31 @@ module.exports = function(app, db, passport) {
                     return;
                 }
                 var delid = rows[0].id;
-                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + makeid() + '", "bring" )', function(err, rows, fields) {
+                var delidthing = rows[0].idthing;
+                db.query('SELECT amount FROM thing WHERE idthing='+rows[0].idthing, function(err, rows, fields){
                     if (err) {
                         throw err;
-                        res.redirect('/bring');
+                        res.redirect('/borrow');
                         return;
                     }
-                    var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
-                             'id=' + delid;
-                    db.query(qr, function(err, rows, fields) {
-                        if (err) {
-                            throw err;
-                            res.redirect('/bring');
-                            return;
-                        }
-                    });
+                    if (rows[0].amount - parseInt(chooses[k]) > 0 && parseInt(chooses[k]) > 0) {
+                        db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + delidthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + borrow_id + '", "bring" )', function(err, rows, fields) {
+                            if (err) {
+                                throw err;
+                                res.redirect('/bring');
+                                return;
+                            }
+                            var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
+                                     'id=' + delid;
+                            db.query(qr, function(err, rows, fields) {
+                                if (err) {
+                                    throw err;
+                                    res.redirect('/bring');
+                                    return;
+                                }
+                            });
+                        });
+                    }
                 });
             });
         }
@@ -155,7 +166,7 @@ module.exports = function(app, db, passport) {
     app.get('/borrow', loggedIn, function(req, res) {
         var thinglist = undefined;
         var borrowlist = undefined;
-        db.query('SELECT * FROM thing', function(err, rows, fields) {
+        db.query('SELECT * FROM thing WHERE cate=0', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
@@ -208,6 +219,7 @@ module.exports = function(app, db, passport) {
 
     app.post('/borrow/save', loggedIn, function(req, res) {
         var chooses = req.body;
+        var borrow_id = makeid();
         for(var k in chooses){
             console.log(k,chooses[k]);
             db.query('SELECT id, idthing FROM templist WHERE id=' + k, function(err, rows, fields) {
@@ -217,22 +229,33 @@ module.exports = function(app, db, passport) {
                     return;
                 }
                 var delid = rows[0].id;
-                db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + rows[0].idthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + makeid() + '", "borrow" )', function(err, rows, fields) {
+                var delidthing = rows[0].idthing;
+                console.log( rows[0].idthing, delidthing);
+                db.query('SELECT amount FROM thing WHERE idthing='+rows[0].idthing, function(err, rows, fields){
                     if (err) {
                         throw err;
                         res.redirect('/borrow');
                         return;
                     }
-                    var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
-                             'id=' + delid;
-                    db.query(qr, function(err, rows, fields) {
-                        if (err) {
-                            throw err;
-                            res.redirect('/borrow');
-                            return;
-                        }
-                    });
-                });
+                    if (rows[0].amount - parseInt(chooses[k]) > 0 && parseInt(chooses[k]) > 0) {
+                        db.query('INSERT INTO borrowhistory (idthing, userid, amount, idwork, type) VALUES (' + delidthing + ', ' + req.user.id + ',' + chooses[k] + ', "' + borrow_id + '", "borrow" )', function(err, rows, fields) {
+                            if (err) {
+                                throw err;
+                                res.redirect('/borrow');
+                                return;
+                            }
+                            var qr = 'UPDATE templist SET status=false WHERE status=true AND ' +
+                                     'id=' + delid;
+                            db.query(qr, function(err, rows, fields) {
+                                if (err) {
+                                    throw err;
+                                    res.redirect('/borrow');
+                                    return;
+                                }
+                            });
+                        });
+                    }
+                }); 
             });
         }
         res.redirect('/borrow');
@@ -286,10 +309,6 @@ module.exports = function(app, db, passport) {
         });
     });
 
-    app.get('/return', loggedIn, function(req, res) {
-        res.render('return');
-    });
-
     app.get('/addthing', adminloggedIn, function(req, res) {
         res.render('admin/addthing');
     });
@@ -299,12 +318,14 @@ module.exports = function(app, db, passport) {
         var namething = req.body.namething;
         var amount = req.body.amount;
         var least = req.body.least;
+        var cate = req.body.cate;
 
-        var insq = 'INSERT INTO thing ( idthing, name, amount, least) VALUES (' +
+        var insq = 'INSERT INTO thing ( idthing, name, amount, least, cate) VALUES (' +
                    '"' + idthing + '",' +
                    '"' + namething + '",' + 
                    '' + amount + ',' + 
-                   '' + least + ')';
+                   '' + least + ',' +
+                   '' + cate + ' )';
         
         db.query(insq, function(err, rows, fields) {
             if (err) {
@@ -434,6 +455,8 @@ module.exports = function(app, db, passport) {
                     rows[i].status = "submited";
                 }else if(rows[i].status == 0){
                     rows[i].status = "canceled";                    
+                }else if(rows[i].status == 3){
+                    rows[i].status = "returned";                    
                 }
             }
             res.render('admin/history', { listThing: rows });
@@ -485,6 +508,42 @@ module.exports = function(app, db, passport) {
         });
     });
 
+    app.get('/return', loggedIn, function(req, res) {
+        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid= user.id AND borrowhistory.status=2 AND borrowhistory.type = "borrow" GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            for(var i in rows){
+                if(rows[i].status == 1){
+                    rows[i].status = "pending";
+                }else if(rows[i].status == 2){
+                    rows[i].status = "submited";
+                }else if(rows[i].status == 0){
+                    rows[i].status = "canceled";                    
+                }
+            }
+            res.render('return', { listThing: rows });
+        });
+    });
+
+    app.get('/return/delete', loggedIn, function(req, res) {
+        var choose = req.query.choose;
+        var qr = 'UPDATE borrowhistory SET status=3 WHERE status=2 AND ' +
+                 'idwork="' + choose + '"';
+        db.query(qr, function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/return');
+                return;
+            }
+            db.query('UPDATE thing INNER JOIN borrowhistory ON thing.idthing=borrowhistory.idthing SET thing.amount=thing.amount+borrowhistory.amount WHERE borrowhistory.idwork = "'+ choose +'" AND thing.idthing=borrowhistory.idthing', function(err, rows, fields) {
+                res.redirect('/return');
+            });
+        });
+    });
+
     app.get('/noti', loggedIn, function(req, res) {
         db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid= user.id AND borrowhistory.status=1 GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
             if (err) {
@@ -522,10 +581,11 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/detail', loggedIn, function(req, res) {
+        var choose = req.query.choose;
         var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, thing.name, borrowhistory.amount, borrowhistory.date, borrowhistory.status ' +
                  'FROM borrowhistory INNER JOIN user ON ' + 
                  'borrowhistory.userid=user.id ' +
-                 'and borrowhistory.status=1 INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
+                 'and borrowhistory.status=1 INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing ' + 'WHERE idwork= "' + choose + '"';
         db.query(sq, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -548,7 +608,7 @@ module.exports = function(app, db, passport) {
     app.get('/detail/delete', loggedIn, function(req, res) {
         var choose = req.query.choose;
         var qr = 'UPDATE borrowhistory SET status=0 WHERE status=1 AND ' +
-                 'idwork=' + choose;
+                 'idwork="' + choose + '"';
         db.query(qr, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -569,7 +629,15 @@ module.exports = function(app, db, passport) {
                 res.redirect('/detail');
                 return;
             }
-            res.redirect('/noti');
+            console.log(rows);
+            db.query('UPDATE thing LEFT JOIN borrowhistory ON ' +
+                      'thing.idthing=borrowhistory.idthing SET ' +
+                      'thing.amount=thing.amount-borrowhistory.amount ' +
+                      'WHERE borrowhistory.idwork = "'+ choose +'" ' +
+                      'AND thing.idthing=borrowhistory.idthing', function(err, rows, fields) {
+                
+                res.redirect('/noti');
+            });
         });
     });
 
@@ -580,7 +648,7 @@ module.exports = function(app, db, passport) {
                  'FROM borrowhistory INNER JOIN user ON ' + 
                  'borrowhistory.idwork="' + choose + '" and ' +
                  'borrowhistory.userid=user.id ' +
-                 'and borrowhistory.status=1 and user.id=' + req.user.id + ' INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
+                 'and borrowhistory.status != 0 and user.id=' + req.user.id + ' INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing';
         db.query(sq, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -594,6 +662,8 @@ module.exports = function(app, db, passport) {
                     rows[i].status = "submited";
                 }else if(rows[i].status == 0){
                     rows[i].status = "canceled";                    
+                }else if(rows[i].status == 3){
+                    rows[i].status = "returned";                    
                 }
             }
             res.render('thingdetail', { idwork: rows[0].idwork, listBorrow: rows, status: rows[0].status });
@@ -619,7 +689,7 @@ module.exports = function(app, db, passport) {
         var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, user.nameuser, user.surname, borrowhistory.date, borrowhistory.status ' +
                  'FROM borrowhistory INNER JOIN user ON ' + 
                  'borrowhistory.userid=user.id ' +
-                 'and borrowhistory.status=1 and user.id=' + req.user.id + ' GROUP BY borrowhistory.idwork';
+                 'and borrowhistory.status != 0 and user.id=' + req.user.id + ' GROUP BY borrowhistory.idwork ' + ' ORDER BY borrowhistory.date DESC';
         db.query(sq, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -633,6 +703,8 @@ module.exports = function(app, db, passport) {
                     rows[i].status = "submited";
                 }else if(rows[i].status == 0){
                     rows[i].status = "canceled";                    
+                }else if(rows[i].status == 3){
+                    rows[i].status = "returned";                    
                 }
             }
             res.render('user/history', { listBorrow: rows });
@@ -660,7 +732,7 @@ module.exports = function(app, db, passport) {
             return;
         }
         if(isNaN(search)){
-            db.query('SELECT * FROM borrowhistory WHERE username="' + search + '"', function(err, rows, fields) {
+            db.query('SELECT * FROM borrowhistory WHERE idwork="' + search + '"', function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
@@ -669,7 +741,7 @@ module.exports = function(app, db, passport) {
                 res.render('user/history', { listBorrow: rows });
             });
         } else {
-            db.query('SELECT * FROM borrowhistory WHERE idborrow=' + search, function(err, rows, fields) {
+            db.query('SELECT * FROM borrowhistory WHERE date=' + search, function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');

@@ -70,7 +70,7 @@ block content
 	div(class="row")
 		div(class="col-xs-12 col-md-12")
 			-each item in listThing
-				div(class="col-xs-3 col-xs-offset-3 col-md-3 col-md-offset-3")= item.name
+				div(class="col-xs-3 col-xs-offset-3 col-md-3 col-md-offset-3")= item.name + " = " + (item.amount) + " ชิ้น"
 				div(class="col-xs-3 col-md-3  text-right")
 					form(class="form-horizontal form-center", method="POST", action="/borrow/add")
 						input(type="hidden", class="form-control", name="choose", value=item.idthing)

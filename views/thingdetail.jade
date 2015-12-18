@@ -25,7 +25,7 @@ block content
 					else
 						-each item in listBorrow
 							tr
-								td= item.date
+								td= item.date.getDate() + "/" + item.date.getMonth() + "/" + item.date.getFullYear()
 								td= item.name
 								td= item.amount
 														

@@ -25,7 +25,7 @@ block content
 				tbody
 					-each item in listThing
 						tr
-							td= item.date
+							td= item.date.getDate() + "/" + item.date.getMonth() + "/" + item.date.getFullYear()
 							td= item.idwork
 							td= item.nameuser
 							td= item.status
