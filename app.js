@@ -69,6 +69,7 @@ passport.deserializeUser(function(id, done) {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(express.static(path.join(__dirname, 'node_modules/bootstrap/dist')));
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -101,12 +102,13 @@ function loggedIn(req, res, next) {
         res.redirect('/');
     }
 }
-
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 // include routes
-var routes = require('./routes/routes')(app, connection, passport);
+var routes = require('./routes/routes')(app, connection, passport, io);
 
 // create and run web application on port 8080 
-var http = require('http').Server(app);
 http.listen(8080);
+
 
 

@@ -1,4 +1,5 @@
-module.exports = function(app, db, passport) {
+
+module.exports = function(app, db, passport, io) {
 
     function loggedIn(req, res, next) {
         if (req.user) {
@@ -31,27 +32,38 @@ module.exports = function(app, db, passport) {
     app.get('/bring', loggedIn, function(req, res) {
         var thinglist = undefined;
         var borrowlist = undefined;
-        db.query('SELECT * FROM thing WHERE cate=1', function(err, rows, fields) {
+        db.query('SELECT * FROM borrowhistory WHERE status=1 AND type="bring" AND userid=' + req.user.id, function(err, rows, fields) {
             if (err) {
-                throw err;
+                    throw err;
+                    res.redirect('/');
+                    return;
+            }
+            if(rows.length > 0){
                 res.redirect('/');
                 return;
             }
-            thinglist = rows;
-            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser= ' + req.user.id, function(err, rows, fields) {
+            db.query('SELECT * FROM thing WHERE cate=1', function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
                     return;
                 }
-                borrowlist = [];
-                for (x in rows) {
-                    borrowlist.push({
-                        id: rows[x].id,
-                        name: rows[x].name
-                    });
-                }
-                res.render('bring', { listThing: thinglist, wishlist: borrowlist});
+                thinglist = rows;
+                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser= ' + req.user.id, function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    borrowlist = [];
+                    for (x in rows) {
+                        borrowlist.push({
+                            id: rows[x].id,
+                            name: rows[x].name
+                        });
+                    }
+                    res.render('bring', { listThing: thinglist, wishlist: borrowlist});
+                });
             });
         });
     });
@@ -166,27 +178,38 @@ module.exports = function(app, db, passport) {
     app.get('/borrow', loggedIn, function(req, res) {
         var thinglist = undefined;
         var borrowlist = undefined;
-        db.query('SELECT * FROM thing WHERE cate=0', function(err, rows, fields) {
+        db.query('SELECT * FROM borrowhistory WHERE status=1 AND type="borrow" AND userid=' + req.user.id, function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
                 return;
             }
-            thinglist = rows;
-            db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser=' + req.user.id , function(err, rows, fields) {
+            if(rows.length > 0){
+                res.redirect('/');
+                return;
+            }
+            db.query('SELECT * FROM thing WHERE cate=0', function(err, rows, fields) {
                 if (err) {
                     throw err;
                     res.redirect('/');
                     return;
                 }
-                borrowlist = [];
-                for (x in rows) {
-                    borrowlist.push({
-                        id: rows[x].id,
-                        name: rows[x].name
-                    });
-                }
-                res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
+                thinglist = rows;
+                db.query('SELECT * FROM thing INNER JOIN templist ON thing.idthing=templist.idthing AND templist.status=true AND templist.iduser=' + req.user.id , function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        res.redirect('/');
+                        return;
+                    }
+                    borrowlist = [];
+                    for (x in rows) {
+                        borrowlist.push({
+                            id: rows[x].id,
+                            name: rows[x].name
+                        });
+                    }
+                    res.render('borrow', { listThing: thinglist, wishlist: borrowlist});
+                });
             });
         });
     });
@@ -402,7 +425,7 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/userdetail', adminloggedIn, function(req, res) {
-        db.query('SELECT * FROM user', function(err, rows, fields) {
+        db.query('SELECT * FROM user WHERE status = 1', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
@@ -441,13 +464,12 @@ module.exports = function(app, db, passport) {
     });
 
     app.get('/history', adminloggedIn, function(req, res) {
-        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid=user.id GROUP BY borrowhistory.idwork', function(err, rows, fields) {
+        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid=user.id GROUP BY borrowhistory.idwork ORDER BY borrowhistory.date DESC', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
                 return;
             }
-            console.log(rows);
             for(var i in rows){
                 if(rows[i].status == 1){
                     rows[i].status = "pending";
@@ -468,14 +490,25 @@ module.exports = function(app, db, passport) {
             res.redirect('/history');
             return;
         }
-        var search = isNaN(req.body.search) ? 'user.nameuser="' + req.body.search + '"':'borrowhistory.idwork="' + req.body.search + '"';
-        db.query('SELECT * FROM borrowhistory, user WHERE ' + search + ' GROUP BY borrowhistory.idwork' , function(err, rows, fields) {
+        var search = 'user.nameuser="' + req.body.search + '"';
+        db.query('SELECT * FROM borrowhistory INNER JOIN user ON user.id=borrowhistory.userid WHERE ' + search + ' GROUP BY borrowhistory.idwork', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
                 return;
             }
-            res.render('admin/history', { listThing: rows });
+            for(var i in rows){
+                if(rows[i].status == 1){
+                    rows[i].status = "pending";
+                }else if(rows[i].status == 2){
+                    rows[i].status = "submited";
+                }else if(rows[i].status == 0){
+                    rows[i].status = "canceled";                    
+                }else if(rows[i].status == 3){
+                    rows[i].status = "returned";                    
+                }
+            }
+            res.render('admin/history', { listThing : rows });
         });
     });
 
@@ -544,15 +577,54 @@ module.exports = function(app, db, passport) {
         });
     });
 
+    app.post('/api/rfid', function(req, res) {
+        //var rfid = JSON.parse(req.body.rfid);
+        var rfid = '2147488';
+        var suTest = false;
+        db.query('SELECT * FROM user WHERE user.rfid="' + rfid + '"', function(err, rows, fields) {
+            if (err) {
+                throw err;
+                return;
+            }
+            if(rows && rows.length > 0){
+                var qr = 'UPDATE borrowhistory SET status=4 WHERE status=1 AND ' +
+                         'userid=' + rows[0].id;
+                var userID = rows[0].id;
+                db.query(qr, function(err, rows, fields) {
+                    if (err) {
+                        throw err;
+                        return;
+                    }
+                    console.log(userID);
+                    var qrs = 'SELECT * FROM borrowhistory WHERE status=4 AND ' +
+                         'userid=' + userID;
+                    db.query(qrs, function(err, rows, fields) {
+                        if (err) {
+                            throw err;
+                            return;
+                        }
+                        io.emit('notification', { "messages" : rows.length });
+                        suTest = true;
+                    });
+                });
+            }
+        });
+        if(suTest){
+            res.json({ "status": "successfull"});
+        }else{
+            res.status(404).send('404 Not found\n');
+        }
+    });
+
     app.get('/noti', loggedIn, function(req, res) {
-        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid= user.id AND borrowhistory.status=1 GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
+        db.query('SELECT * FROM user, borrowhistory WHERE borrowhistory.userid= user.id AND borrowhistory.status=4 GROUP BY borrowhistory.idwork ', function(err, rows, fields) {
             if (err) {
                 throw err;
                 res.redirect('/');
                 return;
             }
             for(var i in rows){
-                if(rows[i].status == 1){
+                if(rows[i].status == 4){
                     rows[i].status = "pending";
                 }else if(rows[i].status == 2){
                     rows[i].status = "submited";
@@ -585,7 +657,7 @@ module.exports = function(app, db, passport) {
         var sq = 'SELECT borrowhistory.id, borrowhistory.idwork, thing.name, borrowhistory.amount, borrowhistory.date, borrowhistory.status ' +
                  'FROM borrowhistory INNER JOIN user ON ' + 
                  'borrowhistory.userid=user.id ' +
-                 'and borrowhistory.status=1 INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing ' + 'WHERE idwork= "' + choose + '"';
+                 'and borrowhistory.status=4 INNER JOIN thing ON ' + 'borrowhistory.idthing=thing.idthing ' + 'WHERE idwork= "' + choose + '"';
         db.query(sq, function(err, rows, fields) {
             if (err) {
                 throw err;
@@ -593,7 +665,7 @@ module.exports = function(app, db, passport) {
                 return;
             }
             for(var i in rows){
-                if(rows[i].status == 1){
+                if(rows[i].status == 4){
                     rows[i].status = "pending";
                 }else if(rows[i].status == 2){
                     rows[i].status = "submited";
@@ -607,7 +679,7 @@ module.exports = function(app, db, passport) {
 
     app.get('/detail/delete', loggedIn, function(req, res) {
         var choose = req.query.choose;
-        var qr = 'UPDATE borrowhistory SET status=0 WHERE status=1 AND ' +
+        var qr = 'UPDATE borrowhistory SET status=0 WHERE status=4 AND ' +
                  'idwork="' + choose + '"';
         db.query(qr, function(err, rows, fields) {
             if (err) {
@@ -621,7 +693,7 @@ module.exports = function(app, db, passport) {
 
     app.get('/detail/comfirm', adminloggedIn, function(req, res) {
         var choose = req.query.choose;
-        var qr = 'UPDATE borrowhistory SET status=2 WHERE status=1 AND ' +
+        var qr = 'UPDATE borrowhistory SET status=2 WHERE status=4 AND ' +
                  'idwork="' + choose + '"';
         db.query(qr, function(err, rows, fields) {
             if (err) {
@@ -731,25 +803,15 @@ module.exports = function(app, db, passport) {
             res.redirect('/userhistory');
             return;
         }
-        if(isNaN(search)){
-            db.query('SELECT * FROM borrowhistory WHERE idwork="' + search + '"', function(err, rows, fields) {
-                if (err) {
-                    throw err;
-                    res.redirect('/');
-                    return;
-                }
-                res.render('user/history', { listBorrow: rows });
-            });
-        } else {
-            db.query('SELECT * FROM borrowhistory WHERE date=' + search, function(err, rows, fields) {
-                if (err) {
-                    throw err;
-                    res.redirect('/');
-                    return;
-                }
-                res.render('user/history', { listBorrow: rows });
-            });
-        }   
+        var search = isNaN(req.body.search) ? 'idwork="' + req.body.search + '"':'status=' + req.body.search ;
+        db.query('SELECT * FROM borrowhistory WHERE ' + search , function(err, rows, fields) {
+            if (err) {
+                throw err;
+                res.redirect('/');
+                return;
+            }
+            res.render('user/history', { listBorrow: rows });
+        });
     });
 
     function makeid()

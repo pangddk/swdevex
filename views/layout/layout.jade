@@ -37,7 +37,7 @@ html
                                 else
                                     li
                                         a(href="noti") การแจ้งเตือน &nbsp;
-                                            span(class="badge") 42
+                                            span(class="badge" id="guest") 0
                                     li(class="dropdown")
                                         a(href="#", class="dropdown-toggle", data-toggle="dropdown", role="button", aria-haspopup="true", aria-expanded="false") อุปกรณ์
                                             span(class="caret")
@@ -63,7 +63,15 @@ html
                                 ul(class="nav navbar-nav")
                                     li
                                         a(href="/logout") Sign out
-                
+            if user
+                if user.role == 'admin'
+                    script(src="/socket.io-client/socket.io.js")
+                    script(type='text/javascript').
+                        var socket = io.connect();
+                        socket.on('notification', function (data) {
+                            var name = document.getElementById("guest");
+                            name.innerHTML = data.messages;
+                        });
             block content
         script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
         script(src="/js/bootstrap.min.js")
